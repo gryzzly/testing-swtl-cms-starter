@@ -1,0 +1,57 @@
+name: Build Site and Admin
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    env:
+      SWTL_CMS_GITHUB_USER: ${{ github.repository_owner }}
+      SWTL_CMS_GITHUB_REPO: ${{ github.event.repository.name }}
+      SWTL_CMS_CONFIG_FILE: 'swtl-cms-config.json'
+      SWTL_CMS_CONTENT_FILE: 'swtl-cms-content.json'
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "22"
+
+      # Build SWTL CMS into /output/admin/…
+      - name: Clone and build SWTL CMS
+        run: |
+          git clone https://github.com/gryzzly/swtl-cms.git temp-cms
+          cd temp-cms
+          npm install
+          npm run build
+          mkdir -p ../output/admin
+          envsubst < dist/admin/index.html.tmpl > dist/admin/index.html
+          cp -r dist/admin/* ../output/admin/
+          cd ..
+          rm -rf temp-cms
+
+      # build HTML into /output/…
+      - name: Build HTML
+        run: node build.mjs
+
+      # Deploy to Netlify
+      - name: Deploy to Netlify
+        uses: nwtgck/actions-netlify@v2
+        with:
+          publish-dir: "./output"
+          production-branch: main
+          github-token: ${{ github.token }}
+          deploy-message: "Deploy from GitHub Actions"
+          enable-pull-request-comment: true
+          enable-commit-comment: true
+          overwrites-pull-request-comment: true
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        timeout-minutes: 1
