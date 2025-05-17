@@ -1,3 +1,17 @@
 {
-  "collections": []
+  "collections": {
+    "pages": [
+      {
+        "id": "03z14h8",
+        "createdAt": 1747480311273,
+        "modifiedAt": 1747480311273,
+        "url": "/",
+        "title": "Hello",
+        "metaDescription": "This is the root page.",
+        "body": "<p>Hello world!</p>",
+        "published": ""
+      }
+    ]
+  },
+  "deletedIds": {}
 }
